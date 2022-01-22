@@ -7,8 +7,8 @@ from grpc import (  # type: ignore
     StreamUnaryClientInterceptor,
     StreamStreamClientInterceptor
 )
-
 from typing import Dict, Optional, Union, Sequence, List
+from src.proto import runtime_pb2,runtime_pb2_grpc
 
 class RuntimeGrpcClient:
     """The convenient layer implementation of Layotto gRPC APIs.
@@ -48,7 +48,8 @@ class RuntimeGrpcClient:
         if interceptors:
             self._channel = grpc.intercept_channel(   # type: ignore
                 self._channel, *interceptors)
-        # TODO set stub
+        # set stub
+        self._stub = runtime_pb2_grpc.RuntimeStub(self._channel)
 
     def close(self):
         """Closes runtime gRPC channel."""
@@ -64,11 +65,12 @@ class RuntimeGrpcClient:
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         self.close()
 
-    def say_hello():
+    def say_hello(self,service_name:str):
         """Sends a Hello request to Layotto Runtime.
         Returns:
             HelloResponse: The response from Layotto Runtime.
         """
+        response, call= self._stub.SayHello.with_call(runtime_pb2.HelloRequest(service_name=service_name))
         # TODO send request to layotto runtime
-        return "hello,world"
+        return response.hello
 
